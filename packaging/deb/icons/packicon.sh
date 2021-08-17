@@ -45,7 +45,7 @@ done
 # MAIN SCRIPT
 #
 
-# The arguments pass to this script should specify the icon themes to build, for
+# The arguments passed to this script should specify the icon themes to build, for
 # example:
 #
 #     ./packicon.sh luna professional
