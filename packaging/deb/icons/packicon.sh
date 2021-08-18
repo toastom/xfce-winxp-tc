@@ -94,7 +94,7 @@ do
 
     for mapping in ${mappings[*]}
     do
-        if [[ $mapping =~ ([a-z]+)/([a-z-]+)--\>([A-Za-z_]+) ]]
+        if [[ $mapping =~ ([a-z]+)/([a-z0-9.+-]+)--\>([A-Za-z_]+) ]]
         then
             icon_context="${BASH_REMATCH[1]}"
             icon_name="${BASH_REMATCH[2]}"

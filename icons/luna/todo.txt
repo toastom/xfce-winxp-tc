@@ -1,0 +1,144 @@
+missing 16px
+------------
+dialog_error -- source is AWFULLY cropped
+
+missing 24px
+------------
+file_cs
+file_vb
+file_sln
+file_csproj
+file_vbproj
+file_h
+file_cpp
+file_c
+file_obj
+file_generic_markup
+file_sql
+file_generic_shell
+file_generic_executable
+file_jpg
+file_generic_media
+file_generic_installer
+file_vbs
+file_js
+file_generic_script
+folder_compressed
+file_generic_library
+file_generic_font
+file_ttf
+folder_new
+dialog_info
+dialog_error
+dialog_warning
+file_xls
+file_mdb
+file_pub
+file_msg
+file_ppt
+file_doc
+file_vsd
+file_txt
+file_generic_config
+file_otf
+bluetooth
+gamepad
+file_msstyles
+cli
+control_display
+net_lan
+people
+auth
+net_remote
+net_wan
+mouse
+keyboard
+drive_floppy
+net_internet
+network_share_disconnected
+file_generic_audio_project
+file_generic_video_project
+camera
+net_upload
+file_bmp
+file_generic_vector_drawing
+file_tiff
+pda
+scanner
+camcorder
+volume_on
+volume_off
+tablet_pc
+file_dot
+file_unknown
+file_rtf
+file_asm
+file_swf
+file_dcr
+file_pdf
+file_xlt
+file_pot
+file_pps
+file_generic_database
+file_cab
+file_generic
+file_aspx
+file_asax
+file_ashx
+file_ascx
+file_asmx
+file_msi
+file_resx
+file_web_config
+
+missing 32px
+------------
+dialog_error -- source is AWFULLY cropped
+file_pps -- for some reason is 31x32px
+
+missing 48px
+------------
+file_cs
+file_vb
+file_sln
+file_csproj
+file_vbproj
+file_h
+file_cpp
+file_c
+file_obj
+file_generic_markup
+file_sql
+file_vbs
+file_js
+file_generic_script
+file_generic_config -- for some reason is 47x48px
+file_rtf
+file_asm
+file_swf
+file_dcr
+file_pdf
+file_generic_database
+file_aspx
+file_asax
+file_ashx
+file_ascx
+file_asmx
+file_msi
+file_resx
+file_web_config
+
+needed
+------
+.iso
+      application/x-cd-image
+      application/x-cue
+
+.mysql files showing as .c ?
+
+.cmake should have a different icon - probably .ini
+
+folder icon 24x24 has awful cropping
+
+
+
