@@ -1,17 +1,8 @@
 missing 16px
 ------------
-dialog_error -- source is AWFULLY cropped
 
 missing 24px
 ------------
-file_cs
-file_vb
-file_sln
-file_csproj
-file_vbproj
-file_h
-file_cpp
-file_c
 file_obj
 file_generic_markup
 file_sql
@@ -28,9 +19,6 @@ file_generic_library
 file_generic_font
 file_ttf
 folder_new
-dialog_info
-dialog_error
-dialog_warning
 file_xls
 file_mdb
 file_pub
@@ -93,8 +81,6 @@ file_web_config
 
 missing 32px
 ------------
-dialog_error -- source is AWFULLY cropped
-file_pps -- for some reason is 31x32px
 
 missing 48px
 ------------
