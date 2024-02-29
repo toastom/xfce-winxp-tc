@@ -20,9 +20,9 @@ int main(
     // Launch application
     //
     WinTCMinesApplication* app = wintc_mines_application_new();
-    int                    status;
+    int status;
 
-    g_set_application_name("Mines");
+    g_set_application_name("Minesweeper");
 
     status = g_application_run(G_APPLICATION(app), argc, argv);
 

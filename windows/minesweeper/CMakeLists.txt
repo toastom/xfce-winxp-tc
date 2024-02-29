@@ -34,7 +34,6 @@ add_executable(
     src/application.c
     src/application.h
     src/main.c
-    src/meta.h
     src/resources.c
     src/window.c
     src/window.h

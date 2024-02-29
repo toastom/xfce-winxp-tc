@@ -64,7 +64,7 @@ WinTCMinesApplication* wintc_mines_application_new(void)
     return WINTC_MINES_APPLICATION(
         g_object_new(
             wintc_mines_application_get_type(),
-            "application-id", "uk.co.oddmatics.wintc.msmines",
+            "application-id", "uk.co.oddmatics.wintc.minesweeper",
             NULL
         )
     );
