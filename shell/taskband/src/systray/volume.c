@@ -1,8 +1,10 @@
+#include <canberra.h>
+#include <canberra-gtk.h>
 #include <glib.h>
 #include <gtk/gtk.h>
-#include <wintc-comgtk.h>
-#include <wintc-shelldpa.h>
-#include <wintc-sndapi.h>
+#include <wintc/comgtk.h>
+#include <wintc/shelldpa.h>
+#include <wintc/sndapi.h>
 
 #include "behaviour.h"
 #include "volume.h"
@@ -74,6 +76,11 @@ static void on_check_mute_toggled(
     GtkToggleButton* self,
     gpointer         user_data
 );
+static gboolean on_scale_volume_button_release_event(
+    GtkWidget*      self,
+    GdkEventButton* event,
+    gpointer        user_data
+);
 static void on_scale_volume_value_changed(
     GtkRange* self,
     gpointer  user_data
@@ -85,7 +92,7 @@ static void on_scale_volume_value_changed(
 G_DEFINE_TYPE(
     WinTCNotificationVolume,
     wintc_notification_volume,
-    TYPE_WINTC_NOTIFICATION_BEHAVIOUR
+    WINTC_TYPE_NOTIFICATION_BEHAVIOUR
 )
 
 static void wintc_notification_volume_class_init(
@@ -195,6 +202,12 @@ static void wintc_notification_volume_constructed(
     );
     g_signal_connect(
         volume->scale_volume,
+        "button-release-event",
+        G_CALLBACK(on_scale_volume_button_release_event),
+        NULL
+    );
+    g_signal_connect(
+        volume->scale_volume,
         "value-changed",
         G_CALLBACK(on_scale_volume_value_changed),
         object
@@ -246,7 +259,7 @@ WinTCNotificationVolume* wintc_notification_volume_new(
 {
     return WINTC_NOTIFICATION_VOLUME(
         g_object_new(
-            TYPE_WINTC_NOTIFICATION_VOLUME,
+            WINTC_TYPE_NOTIFICATION_VOLUME,
             "widget-notif", widget_notif,
             NULL
         )
@@ -339,8 +352,10 @@ static void on_snd_output_muted_changed(
     WinTCNotificationVolume* volume =
         WINTC_NOTIFICATION_VOLUME(user_data);
 
-    gboolean muted     = wintc_sndapi_output_is_muted(output);
-    gchar*   icon_name = muted ? "audio-volume-muted" : "audio-volume-medium";
+    gboolean     muted     = wintc_sndapi_output_is_muted(output);
+    const gchar* icon_name = muted ?
+                                 "audio-volume-muted" :
+                                 "audio-volume-medium";
 
     volume->syncing_state = TRUE;
     gtk_toggle_button_set_active(
@@ -408,6 +423,31 @@ static void on_check_mute_toggled(
         volume->snd_output,
         gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(self))
     );
+}
+
+static gboolean on_scale_volume_button_release_event(
+    WINTC_UNUSED(GtkWidget* self),
+    GdkEventButton* event,
+    WINTC_UNUSED(gpointer user_data)
+)
+{
+    if (event->button != GDK_BUTTON_PRIMARY)
+    {
+        return FALSE;
+    }
+
+    // Ding!
+    //
+    ca_context* ctx = ca_gtk_context_get();
+
+    ca_context_play(
+        ctx,
+        0,
+        CA_PROP_EVENT_ID, "audio-volume-change",
+        NULL
+    );
+
+    return FALSE;
 }
 
 static void on_scale_volume_value_changed(

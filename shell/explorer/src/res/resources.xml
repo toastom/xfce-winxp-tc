@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+  <gresource prefix="/uk/oddmatics/wintc/explorer">
+    <file>adrbar.ui</file>
+    <file>explorer.ui</file>
+    <file>flag22.png</file>
+    <file>flag26.png</file>
+    <file>flag38.png</file>
+  </gresource>
+</gresources>

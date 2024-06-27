@@ -1,8 +1,8 @@
 #include <glib.h>
 #include <gtk/gtk.h>
 #include <pango/pango.h>
-#include <wintc-comgtk.h>
-#include <wintc-shelldpa.h>
+#include <wintc/comgtk.h>
+#include <wintc/shelldpa.h>
 
 #include "windowmonitor.h"
 
@@ -78,6 +78,16 @@ static void window_manager_update_text(
 //
 // PUBLIC FUNCTIONS
 //
+void window_monitor_destroy(
+    WindowMonitor* monitor
+)
+{
+    g_hash_table_unref(monitor->window_manager_map);
+    g_free(monitor);
+
+    wintc_wndmgmt_shutdown();
+}
+
 WindowMonitor* window_monitor_init_management(
     GtkContainer* container
 )
@@ -86,9 +96,11 @@ WindowMonitor* window_monitor_init_management(
 
     window_monitor->container          = container;
     window_monitor->screen             = wintc_wndmgmt_screen_get_default();
-    window_monitor->window_manager_map = g_hash_table_new(
+    window_monitor->window_manager_map = g_hash_table_new_full(
                                              g_direct_hash,
-                                             g_direct_equal
+                                             g_direct_equal,
+                                             NULL,
+                                             g_free
                                          );
 
     g_signal_connect(
@@ -120,17 +132,21 @@ static void window_manager_update_icon(
     WindowManagerSingle* window_manager
 )
 {
+    GdkPixbuf* icon;
+
     if (window_manager->button == NULL)
     {
         return;
     }
 
+    icon = wintc_wndmgmt_window_get_mini_icon(window_manager->managed_window);
+
     gtk_image_set_from_pixbuf(
         window_manager->button_icon,
-        wintc_wndmgmt_window_get_mini_icon(
-            window_manager->managed_window
-        )
+        icon
     );
+
+    g_object_unref(icon);
 }
 
 static void window_manager_update_state(
@@ -315,7 +331,6 @@ static void on_window_closed(
         gtk_widget_destroy(GTK_WIDGET(window_manager->button));
     }
 
-    g_free(window_manager);
     g_hash_table_remove(window_monitor->window_manager_map, window);
 }
 

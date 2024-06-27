@@ -16,6 +16,10 @@ if (NOT DEFINED WINTC_PKGMGR OR "${WINTC_PKGMGR}" STREQUAL "")
     set(WINTC_PKGMGR raw)
 endif()
 
+# Export install prefix (useful for retrieving data at runtime)
+#
+add_compile_definitions(WINTC_RT_PREFIX="${CMAKE_INSTALL_PREFIX}")
+
 # Set up library directory
 #
 if (
@@ -25,9 +29,10 @@ if (
 )
     set(LIB_DIR lib)
 elseif (
-    ${CMAKE_SYSTEM_PROCESSOR} STREQUAL "amd64"  OR
-    ${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64" OR
-    ${CMAKE_SYSTEM_PROCESSOR} STREQUAL "ia64"   OR
+    ${CMAKE_SYSTEM_PROCESSOR} STREQUAL "amd64"   OR
+    ${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64"  OR
+    ${CMAKE_SYSTEM_PROCESSOR} STREQUAL "ia64"    OR
+    ${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64" OR
     ${CMAKE_SYSTEM_PROCESSOR} STREQUAL "armv8"
 )
     set(LIB_DIR lib64)
@@ -38,11 +43,48 @@ else()
     )
 endif()
 
+# Library directory varies on some distros...
+#
+if (
+    ${WINTC_PKGMGR} STREQUAL "apk"     OR
+    ${WINTC_PKGMGR} STREQUAL "archpkg" OR
+    ${WINTC_PKGMGR} STREQUAL "bsdpkg"  OR
+    ${WINTC_PKGMGR} STREQUAL "xbps"
+)
+    # No lib64 on some distros
+    #
+    set(LIB_DIR lib)
+elseif (
+    ${WINTC_PKGMGR} STREQUAL "deb"
+)
+    # Debian needs mapping to multi-arch
+    #
+    if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
+        set(LIB_DIR lib/x86_64-linux-gnu)
+    elseif (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "i686")
+        set(LIB_DIR lib/i386-linux-gnu)
+    elseif (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "ia64")
+        set(LIB_DIR lib/ia64-linux-gnu)
+    elseif (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "armv6l")
+        set(LIB_DIR lib/arm-linux-gnueabihf)
+    elseif (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "armv7l")
+        set(LIB_DIR lib/arm-linux-gnu)
+    elseif (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "armv8")
+        set(LIB_DIR lib/aarch64-linux-gnu)
+    else()
+        message(
+            FATAL_ERROR
+            "No deb multiarch for architecture: ${CMAKE_SYSTEM_PROCESSOR}"
+        )
+    endif()
+endif()
+
 # Set up sbin/bin directory target (some distros don't use sbin)
 #
 if (
     ${WINTC_PKGMGR} STREQUAL "apk"     OR
-    ${WINTC_PKGMGR} STREQUAL "archpkg"
+    ${WINTC_PKGMGR} STREQUAL "archpkg" OR
+    ${WINTC_PKGMGR} STREQUAL "xbps"
 )
     set(WINTC_SAFE_SBIN_DIR ${CMAKE_INSTALL_BINDIR})
 else()
@@ -54,7 +96,7 @@ endif()
 if (${WINTC_PKGMGR} STREQUAL "bsdpkg")
     set(WINTC_SAFE_PKGCONFIG_DIR libdata)
 else()
-    set(WINTC_SAFE_PKGCONFIG_DIR ${CMAKE_INSTALL_LIBDIR})
+    set(WINTC_SAFE_PKGCONFIG_DIR ${LIB_DIR})
 endif()
 
 # Define dependency mapping function
@@ -106,6 +148,8 @@ set(WINTC_ALPINE_APKBUILD_IN_PATH ${CMAKE_CURRENT_LIST_DIR}/APKBUILD.in)
 set(WINTC_ARCH_PKGBUILD_IN_PATH   ${CMAKE_CURRENT_LIST_DIR}/PKGBUILD.in)
 set(WINTC_BSD_MANIFEST_IN_PATH    ${CMAKE_CURRENT_LIST_DIR}/bsd-manifest.in)
 set(WINTC_DEBIAN_CONTROL_IN_PATH  ${CMAKE_CURRENT_LIST_DIR}/debian-control.in)
+set(WINTC_RPM_SPEC_IN_PATH        ${CMAKE_CURRENT_LIST_DIR}/rpm.spec.in)
+set(WINTC_XBPS_VARS_IN_PATH       ${CMAKE_CURRENT_LIST_DIR}/xbps-vars.sh.in)
 
 function(wintc_configure_and_install_packaging)
     # Provide 'ALT_PROJECT_NAME' - basically some distros skip the 'lib' in
@@ -123,10 +167,6 @@ function(wintc_configure_and_install_packaging)
         message(STATUS "Outputting raw build (no package manager)")
     elseif (${WINTC_PKGMGR} STREQUAL "apk")
         message(STATUS "Outputting build for Alpine Linux packaging")
-
-        # No /lib64 on Alpine
-        #
-        set(LIB_DIR lib PARENT_SCOPE)
 
         # Set the architecture
         #
@@ -147,10 +187,6 @@ function(wintc_configure_and_install_packaging)
         configure_file(${WINTC_ALPINE_APKBUILD_IN_PATH} APKBUILD @ONLY)
     elseif (${WINTC_PKGMGR} STREQUAL "archpkg")
         message(STATUS "Outputting build for Arch Linux packaging")
-
-        # No /lib64 on Arch
-        #
-        set(LIB_DIR lib PARENT_SCOPE)
 
         # Set the architecture
         #
@@ -189,10 +225,6 @@ function(wintc_configure_and_install_packaging)
         configure_file(${WINTC_ARCH_PKGBUILD_IN_PATH} PKGBUILD @ONLY)
     elseif (${WINTC_PKGMGR} STREQUAL "bsdpkg")
         message(STATUS "Outputting build for FreeBSD packaging")
-
-        # No /lib64 on FreeBSD
-        #
-        set(LIB_DIR lib PARENT_SCOPE)
 
         # Set the licence
         #
@@ -247,27 +279,6 @@ function(wintc_configure_and_install_packaging)
             endif()
         endif()
 
-        # Map architectures to libdirs
-        #
-        if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
-            set(LIB_DIR lib/x86_64-linux-gnu PARENT_SCOPE)
-        elseif (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "i686")
-            set(LIB_DIR lib/i386-linux-gnu PARENT_SCOPE)
-        elseif (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "ia64")
-            set(LIB_DIR lib/ia64-linux-gnu PARENT_SCOPE)
-        elseif (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "armv6l")
-            set(LIB_DIR lib/arm-linux-gnueabihf PARENT_SCOPE)
-        elseif (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "armv7l")
-            set(LIB_DIR lib/arm-linux-gnu PARENT_SCOPE)
-        elseif (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "armv8")
-            set(LIB_DIR lib/aarch64-linux-gnu PARENT_SCOPE)
-        else()
-            message(
-                FATAL_ERROR
-                "No deb multiarch for architecture: ${CMAKE_SYSTEM_PROCESSOR}"
-            )
-        endif()
-
         # Map dependencies to Debian
         #
         wintc_map_dependencies()
@@ -296,6 +307,76 @@ function(wintc_configure_and_install_packaging)
 
         configure_file(${WINTC_DEBIAN_CONTROL_IN_PATH} control @ONLY)
         install(FILES ${CMAKE_BINARY_DIR}/control DESTINATION ${DESTDIR}/DEBIAN)
+    elseif (${WINTC_PKGMGR} STREQUAL "rpm")
+        message(STATUS "Outputting build for Red Hat packaging")
+
+        if (${PROJECT_FREESTATUS})
+            set(RPM_LICENCE GPLv2)
+        else()
+            set(RPM_LICENCE NonFree) # Do not know if correct, sod it
+        endif()
+
+        if (${PROJECT_ANYARCH})
+            set(RPM_ARCHITECTURE noarch)
+        else()
+            set(RPM_ARCHITECTURE ${CMAKE_SYSTEM_PROCESSOR})
+        endif()
+
+        # Map dependencies to RPM
+        #
+        wintc_map_dependencies()
+
+        if (DEFINED DEPENDENCIES_MAP)
+            list(JOIN DEPENDENCIES_MAP " " RPM_REQUIRES)
+            string(PREPEND RPM_REQUIRES "Requires: ")
+        endif()
+
+        configure_file(${WINTC_RPM_SPEC_IN_PATH} rpm.spec @ONLY)
+    elseif(${WINTC_PKGMGR} STREQUAL "xbps")
+        message(STATUS "Outputting build for Void Linux packaging")
+
+        if (${PROJECT_FREESTATUS})
+            set(XBPS_LICENCE GPL-2.0-or-later)
+        else()
+            set(XBPS_LICENCE nonfree) # Again, could be bollocks
+        endif()
+
+        if (${PROJECT_ANYARCH})
+            set(XBPS_ARCHITECTURE noarch)
+        else()
+            if (${WINTC_PKGMGR_EXT} STREQUAL "musl")
+                set(XBPS_ARCHITECTURE ${CMAKE_SYSTEM_PROCESSOR}-musl)
+            else()
+                set(XBPS_ARCHITECTURE ${CMAKE_SYSTEM_PROCESSOR})
+            endif()
+        endif()
+
+        # Map dependencies to XBPS
+        #
+        wintc_map_dependencies()
+
+        if (DEFINED DEPENDENCIES_MAP)
+            # HACK: This transform here is a horrible bodge that would probably
+            #       get me hung, drawn and quartered by Void Linux packagers if
+            #       they ever came across it
+            #
+            #       The repo currently doesn't track specific versions for deps
+            #       so in order for Void Linux to be happy, we specify
+            #           foo>=0.1_1
+            #       which gets the job done, though obviously this is a totally
+            #       scumbag thing to do
+            #
+            # FIXME: Probably should actually track minimum dep versions, since
+            #        the packaging doesn't bother with versions for any other
+            #        format either, not just Void
+            #
+            list(TRANSFORM DEPENDENCIES_MAP APPEND ">=0.1_1")
+            list(JOIN DEPENDENCIES_MAP " " XBPS_DEPENDENCIES)
+        else()
+            set(XBPS_DEPENDENCIES "")
+        endif()
+
+        configure_file(${WINTC_XBPS_VARS_IN_PATH} xbps-vars.sh @ONLY)
     else()
         message(
             FATAL_ERROR

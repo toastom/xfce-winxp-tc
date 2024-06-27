@@ -1,8 +1,8 @@
 #include <gdk/gdk.h>
 #include <glib.h>
 #include <gtk/gtk.h>
-#include <wintc-comgtk.h>
-#include <wintc-shelldpa.h>
+#include <wintc/comgtk.h>
+#include <wintc/shelldpa.h>
 
 #include "application.h"
 #include "toolbar.h"
@@ -29,6 +29,10 @@ typedef enum
 //
 // FORWARD DECLARATIONS
 //
+static void wintc_taskband_window_dispose(
+    GObject* object
+);
+
 static void wintc_taskband_window_create_toolbar(
     WinTCTaskbandWindow* taskband,
     GType                toolbar_type,
@@ -65,11 +69,15 @@ struct _WinTCTaskbandWindow
 {
     GtkApplicationWindow __parent__;
 
+    // UI
+    //
     GtkWidget*     main_box;
 
     GtkWidget*     notification_area;
     GtkWidget*     start_button;
     GtkWidget*     taskbuttons;
+
+    GSList* toolbars;
 };
 
 //
@@ -82,8 +90,13 @@ G_DEFINE_TYPE(
 )
 
 static void wintc_taskband_window_class_init(
-    WINTC_UNUSED(WinTCTaskbandWindowClass* klass)
-) {}
+    WinTCTaskbandWindowClass* klass
+)
+{
+    GObjectClass* object_class = G_OBJECT_CLASS(klass);
+
+    object_class->dispose = wintc_taskband_window_dispose;
+}
 
 static void wintc_taskband_window_init(
     WinTCTaskbandWindow* self
@@ -122,6 +135,20 @@ static void wintc_taskband_window_init(
 }
 
 //
+// FORWARD DECLARATIONS
+//
+static void wintc_taskband_window_dispose(
+    GObject* object
+)
+{
+    WinTCTaskbandWindow* wnd = WINTC_TASKBAND_WINDOW(object);
+
+    g_clear_slist(&(wnd->toolbars), g_object_unref);
+
+    (G_OBJECT_CLASS(wintc_taskband_window_parent_class))->dispose(object);
+}
+
+//
 // PUBLIC FUNCTIONS
 //
 GtkWidget* wintc_taskband_window_new(
@@ -130,7 +157,7 @@ GtkWidget* wintc_taskband_window_new(
 {
     return GTK_WIDGET(
         g_object_new(
-            TYPE_WINTC_TASKBAND_WINDOW,
+            WINTC_TYPE_TASKBAND_WINDOW,
             "application", GTK_APPLICATION(app),
             "type",        GTK_WINDOW_TOPLEVEL,
             "decorated",   FALSE,
@@ -154,6 +181,12 @@ static void wintc_taskband_window_create_toolbar(
     GtkWidget*            root    = wintc_taskband_toolbar_get_root_widget(
                                         toolbar
                                     );
+
+    taskband->toolbars =
+        g_slist_append(
+            taskband->toolbars,
+            toolbar
+        );
 
     gtk_box_pack_start(
         GTK_BOX(taskband->main_box),
@@ -186,7 +219,7 @@ static gboolean on_window_map_event(
             case WINTC_TASKBAND_TOOLBAR_START:
                 wintc_taskband_window_create_toolbar(
                     taskband,
-                    TYPE_WINTC_TOOLBAR_START,
+                    WINTC_TYPE_TOOLBAR_START,
                     FALSE
                 );
                 break;
@@ -194,7 +227,7 @@ static gboolean on_window_map_event(
             case WINTC_TASKBAND_TOOLBAR_BUTTONS:
                 wintc_taskband_window_create_toolbar(
                     taskband,
-                    TYPE_WINTC_TOOLBAR_TASK_BUTTONS,
+                    WINTC_TYPE_TOOLBAR_TASK_BUTTONS,
                     TRUE
                 );
                 break;
@@ -202,7 +235,7 @@ static gboolean on_window_map_event(
             case WINTC_TASKBAND_TOOLBAR_NOTIFICATION_AREA:
                 wintc_taskband_window_create_toolbar(
                     taskband,
-                    TYPE_WINTC_TOOLBAR_NOTIF_AREA,
+                    WINTC_TYPE_TOOLBAR_NOTIF_AREA,
                     FALSE
                 );
                 break;

@@ -2,9 +2,9 @@
 #include <gdk/gdk.h>
 #include <gdk-pixbuf/gdk-pixbuf.h>
 #include <glib.h>
-#include <wintc-comgtk.h>
+#include <wintc/comgtk.h>
 
-#include "api.h"
+#include "../public/api.h"
 #include "impl-wayland.h"
 #include "impl-x11.h"
 #include "impl-wndmgmt-wnck.h"
@@ -25,14 +25,12 @@ void (*wintc_anchor_taskband_to_bottom) (
     GtkWindow* taskband
 ) = NULL;
 
-void (*wintc_become_desktop_window) (
-    GtkWindow* window
-) = NULL;
-
 WinTCWndMgmtWindow* (*wintc_wndmgmt_screen_get_active_window) (
     WinTCWndMgmtScreen* screen
 ) = NULL;
 WinTCWndMgmtScreen* (*wintc_wndmgmt_screen_get_default) (void) = NULL;
+
+void (*wintc_wndmgmt_shutdown) (void) = NULL;
 
 GdkPixbuf* (*wintc_wndmgmt_window_get_mini_icon) (
     WinTCWndMgmtWindow* window

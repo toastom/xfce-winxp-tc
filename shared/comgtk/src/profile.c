@@ -1,8 +1,8 @@
 #include <errno.h>
 #include <glib.h>
 
-#include "profile.h"
-#include "shorthand.h"
+#include "../public/profile.h"
+#include "../public/shorthand.h"
 
 //
 // PUBLIC FUNCTIONS
@@ -47,6 +47,7 @@ gchar* wintc_profile_get_path(
         return g_build_path(
             "/",
             g_get_user_config_dir(),
+            "wintc",
             component,
             filename,
             NULL
@@ -57,6 +58,7 @@ gchar* wintc_profile_get_path(
         return g_build_path(
             "/",
             g_get_user_config_dir(),
+            "wintc",
             component,
             NULL
         );

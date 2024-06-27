@@ -30,7 +30,9 @@ wintc_resolve_library(wintc-comgtk   WINTC_COMGTK)
 add_library(
     libwintc-shelldpa
     src/api.c
-    src/api.h
+    public/api.h
+    src/deskwnd.c
+    public/deskwnd.h
     src/impl-wayland.c
     src/impl-wayland.h
     src/impl-wndmgmt-wnck.c
@@ -39,6 +41,8 @@ add_library(
     src/impl-wndmgmt-xfw.h
     src/impl-x11.c
     src/impl-x11.h
+    src/dll/layersh.c
+    src/dll/layersh.h
     src/dll/wnck.c
     src/dll/wnck.h
     src/dll/xfw.c
@@ -48,7 +52,6 @@ add_library(
 set_target_properties(
     libwintc-shelldpa
     PROPERTIES
-    PUBLIC_HEADER public/wintc-shelldpa.h
     SOVERSION 1
     VERSION ${PROJECT_VERSION}
 )
@@ -89,9 +92,9 @@ target_link_libraries(
 #
 wintc_configure_and_install_packaging()
 wintc_add_pkgconfig_install()
+wintc_install_public_headers()
 
 install(
     TARGETS libwintc-shelldpa
-    LIBRARY       DESTINATION ${LIB_DIR}
-    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    LIBRARY DESTINATION ${LIB_DIR}
 )

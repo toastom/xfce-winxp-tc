@@ -1,4 +1,0 @@
-bt,rt:glib2
-bt,rt:gtk3
-bt:msgfmt
-bt,rt:wintc-comgtk

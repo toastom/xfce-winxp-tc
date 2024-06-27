@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.12)
 
 set(REPO_ROOT ${CMAKE_CURRENT_LIST_DIR}/../../..)
 
@@ -26,7 +26,19 @@ if (NOT CMAKE_BUILD_TYPE)
 endif()
 
 if (${CMAKE_BUILD_TYPE} STREQUAL Debug)
-    add_definitions(-DWINTC_CHECKED)
+    add_compile_definitions(WINTC_CHECKED)
+endif()
+
+# Enable ASAN for checked builds - but NOT for musl targets!!
+#
+if (
+    NOT ${WINTC_PKGMGR}     STREQUAL apk  AND
+    NOT ${WINTC_PKGMGR_EXT} STREQUAL musl
+)
+    if (${CMAKE_BUILD_TYPE} STREQUAL Debug)
+        add_compile_options(-fsanitize=address -fno-omit-frame-pointer)
+        add_link_options(-fsanitize=address)
+    endif()
 endif()
 
 # Handle SKU stuff

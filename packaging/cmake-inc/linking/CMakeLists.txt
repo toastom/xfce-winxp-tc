@@ -28,7 +28,7 @@ function(wintc_resolve_library REQUESTED_LIB REQUESTED_LIB_NICE_NAME)
     )
         wintc_set(
             "${REQUESTED_LIB_NICE_NAME}_INCLUDE_DIRS"
-            "${REPO_ROOT}/shared/${CMAKE_MATCH_1}/public"
+            "${WINTC_LOCAL_LIBS_ROOT}/shared/${CMAKE_MATCH_1}"
         )
         wintc_set(
             "${REQUESTED_LIB_NICE_NAME}_LIBRARY_DIRS"
